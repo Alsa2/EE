@@ -8,8 +8,10 @@ if __name__ == "__main__":
 
     maze.print_maze()
 
+    
+
     # find a path from (1, 1) to (8, 8)
-    path = find_path_Astar(maze, 1, 1, 1, 1)
+    path = find_path_Astar(maze, 1, 1, 2, 1)
 
     # if a path was found, mark it on the maze
     if path:
