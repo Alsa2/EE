@@ -62,17 +62,22 @@ class Maze:
         return
 
     def print_maze(self) -> str:
+        print(self)
         for row in self.cells:
             for cell in row:
                 if cell:
-                    print("[]", end="")
+                    print("██", end="")
                 else:
                     print("  ", end="")
             print()
 
+    def print_maze_with_start_end(self, start, end) -> str:
+        
+        
+
 if __name__ == "__main__":
     # create a maze object
-    maze = Maze(10, 10)
+    maze = Maze(80, 80)
     # create the maze
     maze.create_maze(1, 1)
     # print the maze
