@@ -1,5 +1,11 @@
 import random
 
+#colors for the maze
+red = "\033[1;31;40m"
+green = "\033[1;32;40m"
+yellow = "\033[1;33;40m"
+reset = "\033[0;0m"
+
 class Maze:
     def __init__(self, width, height):
 
@@ -61,24 +67,78 @@ class Maze:
                 self.create_maze(node_x, node_y)
         return
 
+    def set_start_end(self, start, end):
+        self.cells[start[1]][start[0]] = "Start"
+        self.cells[end[1]][end[0]] = "End"
+
     def print_maze(self) -> str:
-        print(self)
         for row in self.cells:
             for cell in row:
-                if cell:
+                if cell == True:
                     print("██", end="")
-                else:
+                elif cell == False:
                     print("  ", end="")
+                else:
+                    #set color for start and end (start = green, end = red)
+                    if cell == "Start":
+                        print(green + "██" + reset, end="")
+                    elif cell == "End":
+                        print(red + "██" + reset, end="")
+                    elif cell == "Path":
+                        print(yellow + "██" + reset, end="")
             print()
 
-    def print_maze_with_start_end(self, start, end) -> str:
+    def print_maze_with_solution(self, solution) -> str: #solution is a matrix like the one of the walls where True is where it passed and False where it didn't
+        for row in range(len(self.cells)):
+            for cell in range(len(self.cells[row])):
+                if self.cells[row][cell]:
+                    print("██", end="")
+                else:
+                    if solution[row][cell]:
+                        print("  ", end="")
+                    else:
+                        print("██", end="")
+            print()
+    
+    def export_maze(self): 
+        #convert the matrix in 0 for wall 1 for the corridors and 2 for the start and 3 for the end
+        #True is a wall False is a corridor
+        for row in range(len(self.cells)):
+            for cell in range(len(self.cells[row])):
+                if self.cells[row][cell] == True:
+                    self.cells[row][cell] = 1
+                elif self.cells[row][cell] == False:
+                    self.cells[row][cell] = 0
+                elif self.cells[row][cell] == "Start":
+                    self.cells[row][cell] = 2
+                elif self.cells[row][cell] == "End":
+                    self.cells[row][cell] = 3
+        return self.cells
+
+
+    def import_maze(self, matrix): # 1 is wall 0 is corridor and X is the path
+        for row in range(len(matrix)):
+            for cell in range(len(matrix[row])):
+                if matrix[row][cell] == 1:
+                    self.cells[row][cell] = True
+                elif matrix[row][cell] == 0:
+                    self.cells[row][cell] = False
+                elif matrix[row][cell] == "X":
+                    self.cells[row][cell] = "Path"
+        return self.cells
+
+
+
         
         
 
 if __name__ == "__main__":
     # create a maze object
-    maze = Maze(80, 80)
+    maze = Maze(10, 10)
     # create the maze
     maze.create_maze(1, 1)
     # print the maze
+    maze.print_maze()
+    # print the maze with start and end
+    maze.set_start_end((1, 1), (9, 9))
     maze.print_maze()
