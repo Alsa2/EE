@@ -8,14 +8,21 @@ light_green = "\033[48;5;28m"
 red = "\033[48;5;9m"
 blue = "\033[48;5;21m"
 yellow = "\033[48;5;11m"
+light_yellow = "\033[48;5;226m"
 reset = "\033[0m"
 
 
 class Map: # add argument num_ellipses with default value 10
     def __init__(self, map_width, map_height):
         self.map = [[0 for y in range(map_height)] for x in range(map_width)]
-        self.start = (random.randint(0, map_width - 1), random.randint(0, map_height - 1))
-        self.end = (random.randint(0, map_width - 1), random.randint(0, map_height - 1))
+
+        #self.start = (random.randint(0, map_width - 1), random.randint(0, map_height - 1))
+        #self.end = (random.randint(0, map_width - 1), random.randint(0, map_height - 1))
+
+        self.start = (0, 0)
+        self.end = (map_width - 1, map_height - 1)
+
+        self.initial_circle(2)
 
         #add ellipses until possible check is true
         while True:
@@ -24,7 +31,7 @@ class Map: # add argument num_ellipses with default value 10
             status, path = BFS_checker(self.map, self.start, self.end)
             if status:
                 print("Path found")
-                self.print_with_path(path)
+                self.print(path)
                 break
             else:
                 print("No path found")
@@ -72,9 +79,12 @@ class Map: # add argument num_ellipses with default value 10
                     print(blue + "  " + reset, end="")
             print()
 
-    def print_with_path(self, path):
+    def print(self, path=[], visited=[]): # dark green for 0 light green for 1 red for 2 blue for 3
         for cell in path:
             self.map[cell[0]][cell[1]] = 4
+
+        for cell in visited:
+            self.map[cell[0]][cell[1]] = 5
 
         self.map[self.start[0]][self.start[1]] = 2
         self.map[self.end[0]][self.end[1]] = 3
@@ -91,9 +101,24 @@ class Map: # add argument num_ellipses with default value 10
                     print(blue + "  " + reset, end="")
                 elif cell == 4:
                     print(yellow + "  " + reset, end="")
+                elif cell == 5:
+                    print(light_yellow + "  " + reset, end="")
             print()
 
-    
+    def initial_circle(self, radius):# add a circle at start point and end point
+        for i in range(self.start[0] - radius, self.start[0] + radius):
+            for j in range(self.start[1] - radius, self.start[1] + radius):
+                if i >= 0 and i < len(self.map) and j >= 0 and j < len(self.map[0]):
+                    self.map[i][j] = 1
+
+        for i in range(self.end[0] - radius, self.end[0] + radius):
+            for j in range(self.end[1] - radius, self.end[1] + radius):
+                if i >= 0 and i < len(self.map) and j >= 0 and j < len(self.map[0]):
+                    self.map[i][j] = 1
+
+    def get_status(self, x, y):
+        #returns current position status, the one above, the one below, the one to the left, the one to the right
+        return self.map[x][y], self.map[x][y-1], self.map[x][y+1], self.map[x-1][y], self.map[x+1][y]
 
     def return_matrix(self):
         return self.map
@@ -103,5 +128,5 @@ class Map: # add argument num_ellipses with default value 10
     
 
 
-map = Map(80, 80)
+map = Map(10, 10)
 
