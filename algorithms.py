@@ -30,7 +30,7 @@ def BFS_checker(matrix, start, end):
     # Path not found
     return False, None
 
-def Astar_checker(matrix, start, end):
+def Astar(matrix, start, end):
     heap = [(0, start)]
     visited = set()
     parents = {}
@@ -62,7 +62,7 @@ def Astar_checker(matrix, start, end):
                     heapq.heappush(heap, (f_scores[neighbor], neighbor))
 
     # Path not found
-    return False, visited, None
+    return False, None, visited
 
 def manhattan_distance(point1, point2):
     return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1])

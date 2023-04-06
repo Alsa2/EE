@@ -32,13 +32,18 @@ class Map: # add argument num_ellipses with default value 10
             if status:
                 print("Path found")
                 self.print(path)
+                print("Path length: ", len(path))
                 break
             else:
                 print("No path found")
-        
-        return
 
-        
+        status, path, visited = Astar(self.map, self.start, self.end)
+
+        self.print(path, visited)
+        print("Path length: ", len(path))
+
+        return    
+
     def generate_ellipse(self, map_width, map_height):
         crossable = []
 
@@ -56,7 +61,6 @@ class Map: # add argument num_ellipses with default value 10
         crossable.append(shape)
 
         for area in crossable:
-            print(area)
             for cell in area:
                 self.map[cell[0]][cell[1]] = 1
 
@@ -80,8 +84,10 @@ class Map: # add argument num_ellipses with default value 10
             print()
 
     def print(self, path=[], visited=[]): # dark green for 0 light green for 1 red for 2 blue for 3
-        for cell in path:
-            self.map[cell[0]][cell[1]] = 4
+        print()
+        if path != None:
+            for cell in path:
+                self.map[cell[0]][cell[1]] = 4
 
         for cell in visited:
             self.map[cell[0]][cell[1]] = 5
@@ -104,6 +110,13 @@ class Map: # add argument num_ellipses with default value 10
                 elif cell == 5:
                     print(light_yellow + "  " + reset, end="")
             print()
+
+        #reset map by removing path and visited
+        for cell in path:
+            self.map[cell[0]][cell[1]] = 1
+
+        for cell in visited:
+            self.map[cell[0]][cell[1]] = 1
 
     def initial_circle(self, radius):# add a circle at start point and end point
         for i in range(self.start[0] - radius, self.start[0] + radius):
@@ -128,5 +141,5 @@ class Map: # add argument num_ellipses with default value 10
     
 
 
-map = Map(10, 10)
+map = Map(90, 90)
 
