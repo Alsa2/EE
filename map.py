@@ -34,13 +34,14 @@ class Map: # add argument num_ellipses with default value 10
                 self.print(path)
                 print("Path length: ", len(path))
                 break
-            else:
-                print("No path found")
+            #else:
+                #print("No path found")
+
 
         status, path, visited = Astar(self.map, self.start, self.end)
 
         self.print(path, visited)
-        print("Path length: ", len(path))
+        print("Path length: ", len(visited))
 
         return    
 
@@ -64,7 +65,7 @@ class Map: # add argument num_ellipses with default value 10
             for cell in area:
                 self.map[cell[0]][cell[1]] = 1
 
-        print("A ellipse has been generated")
+        #print("A ellipse has been generated")
 
 
     def print(self): # dark green for 0 light green for 1 red for 2 blue for 3
@@ -141,5 +142,5 @@ class Map: # add argument num_ellipses with default value 10
     
 
 
-map = Map(90, 90)
+map = Map(80, 80)
 

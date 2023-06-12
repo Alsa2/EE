@@ -134,11 +134,11 @@ class Maze:
 
 if __name__ == "__main__":
     # create a maze object
-    maze = Maze(10, 10)
+    maze = Maze(100, 100)
     # create the maze
     maze.create_maze(1, 1)
     # print the maze
     maze.print_maze()
     # print the maze with start and end
-    maze.set_start_end((1, 1), (9, 9))
+    maze.set_start_end((1, 1), (99, 99))
     maze.print_maze()
