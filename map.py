@@ -1,6 +1,6 @@
 import random
 import math
-from algorithms import *
+from algorithms import BFS_checker, Astar
 
 
 dark_green = "\033[48;5;22m"
@@ -42,6 +42,8 @@ class Map: # add argument num_ellipses with default value 10
 
         self.print(path, visited)
         print("Path length: ", len(visited))
+
+        print(self.map)
 
         return    
 
@@ -142,5 +144,5 @@ class Map: # add argument num_ellipses with default value 10
     
 
 
-map = Map(80, 80)
+map = Map(20, 20)
 

@@ -1,5 +1,5 @@
-from backtrack import Maze
-from old_algorithms import find_path_Astar
+from OLD.backtrack import Maze
+from OLD.old_algorithms import find_path_Astar
 
 if __name__ == "__main__":
     # create a maze object

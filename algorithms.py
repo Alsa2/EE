@@ -1,5 +1,7 @@
 from queue import Queue
 import heapq
+import numpy as np
+import tensorflow as tf
 
 def BFS_checker(matrix, start, end):
     queue = Queue()
@@ -66,3 +68,32 @@ def Astar(matrix, start, end):
 
 def manhattan_distance(point1, point2):
     return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1])
+
+class DQN:
+    def __init__(self, state_size, action_size, learning_rate, name='DQN'):
+        self.state_size = state_size
+        self.action_size = action_size
+        self.learning_rate = learning_rate
+
+        with tf.variable_scope(name):
+            self._build_network()
+
+    def _build_network(self):
+        self.X = tf.placeholder(tf.float32, [None, self.state_size], name='input')
+
+        W1 = tf.get_variable('W1', shape=[self.state_size, 16], initializer=tf.contrib.layers.xavier_initializer())
+        layer1 = tf.nn.tanh(tf.matmul(self.X, W1))
+
+        W2 = tf.get_variable('W2', shape=[16, self.action_size], initializer=tf.contrib.layers.xavier_initializer())
+        self.Qpred = tf.matmul(layer1, W2)
+
+        self.Y = tf.placeholder(shape=[None, self.action_size], dtype=tf.float32)
+
+        self.loss = tf.reduce_mean(tf.square(self.Y - self.Qpred))
+        self.train = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
+
+    def predict(self, state, sess):
+        return sess.run(self.Qpred, feed_dict={self.X: state})
+
+    def update(self, state, Y, sess):
+        return sess.run([self.loss, self.train], feed_dict={self.X: state, self.Y: Y})
