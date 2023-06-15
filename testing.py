@@ -4,9 +4,9 @@ import tensorflow as tf
 # Define the maze matrix
 maze = np.array([
     [1, 1, 1, 1, 1],
+    [0, 1, 0, 0, 1],
     [1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1],
+    [1, 0, 0, 1, 0],
     [1, 1, 1, 1, 1]
 ])
 
@@ -19,6 +19,10 @@ loaded_model = tf.keras.models.load_model('maze_solver_model')
 
 # Test the learned policy
 state = np.array(start)
+
+# Initialize the last action
+last_position = None
+count = 0
 
 while tuple(state) != end:
     action = np.argmax(loaded_model.predict(state[np.newaxis]))
@@ -37,3 +41,12 @@ while tuple(state) != end:
     
     print(f"Agent Position: {tuple(state)}")
 
+    # Check if the agent is stuck
+    if last_position == tuple(state):
+        count += 1
+    else:
+        count = 0
+    if count > 3:
+        print("Agent is stuck. Stopping.  :(")
+        break
+    last_position = tuple(state)

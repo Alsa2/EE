@@ -144,5 +144,5 @@ class Map: # add argument num_ellipses with default value 10
     
 
 
-map = Map(20, 20)
+map = Map(10, 10)
 
