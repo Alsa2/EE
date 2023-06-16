@@ -53,7 +53,7 @@ class Map: # add argument num_ellipses with default value 10
         # Generate random a ellipse
         x = random.randint(0, map_width - 1)
         y = random.randint(0, map_height - 1)
-        a = random.randint(5, 15)  # major axis
+        a = random.randint(2, 8)  # major axis
         b = random.randint(2, 8)  # minor axis
         angle = random.uniform(0, math.pi/2)  # angle of rotation
         shape = []
@@ -66,8 +66,6 @@ class Map: # add argument num_ellipses with default value 10
         for area in crossable:
             for cell in area:
                 self.map[cell[0]][cell[1]] = 1
-
-        #print("A ellipse has been generated")
 
 
     def print(self): # dark green for 0 light green for 1 red for 2 blue for 3
