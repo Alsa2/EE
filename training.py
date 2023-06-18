@@ -14,8 +14,15 @@ maze = np.array([
 mazes = (
     np.array([
         [1, 1, 1, 1, 1],
-        [0, 1, 0, 0, 1],
+        [0, 0, 1, 0, 1],
         [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1]
+    ]),
+    np.array([
+        [1, 1, 1, 1, 1],
+        [0, 0, 0, 1, 1],
+        [1, 0, 1, 1, 1],
         [1, 0, 0, 1, 0],
         [1, 1, 1, 1, 1]
     ]),
@@ -27,19 +34,19 @@ mazes = (
         [1, 1, 1, 1, 1]
     ]),
     np.array([
-        [1, 1, 1, 1, 1],
-        [0, 1, 0, 0, 1],
-        [1, 1, 1, 1, 1],
-        [1, 0, 0, 1, 0],
-        [1, 1, 1, 1, 1]
+        [1, 0, 1, 1, 1],
+        [1, 0, 1, 0, 1],
+        [1, 1, 1, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 0, 1, 1]
     ]),
     np.array([
         [1, 1, 1, 1, 1],
         [0, 1, 0, 0, 1],
-        [1, 1, 1, 1, 1],
+        [1, 1, 1, 0, 1],
         [1, 0, 0, 1, 0],
-        [1, 1, 1, 1, 1]
-    ])
+        [1, 1, 0, 1, 1]
+    ]),
 )
 
 
@@ -64,18 +71,24 @@ class DQN(tf.keras.Model):
 # Define the Deep Q-Network Agent
 class DQNAgent:
     def __init__(self, maze, start, end):
+        # Default settings
         self.maze = maze
         self.start = start
         self.end = end
         self.num_actions = 4  # Up, Down, Left, Right
         self.epsilon = 1.0  # Exploration rate
-        self.epsilon_decay = 0.99992  # Exploration rate decay
+        self.epsilon_decay = 0.999  # Exploration rate decay
         self.epsilon_min = 0.01  # Minimum exploration rate
         self.gamma = 0.99  # Discount factor
         self.learning_rate = 0.001
         self.model = DQN(self.num_actions)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
-    
+
+        # My additional settings
+        self.succesful_run_trigger = -40
+        self.times_succesful_to_next_map = 40
+        self.time_limit_to_reset_epsilon = 40
+
     def get_action(self, state):
         if np.random.rand() <= self.epsilon:
             return np.random.randint(self.num_actions)
@@ -117,16 +130,28 @@ class DQNAgent:
 
             # Reset the maze
             state = np.array(self.start)
-            
-            if episode_reward == 1:
-                maze_counter += 1
-                print(f"Maze {maze_counter} solved!")
 
-            if maze_counter == 10:
+            # If agent hasen't learn good stuff, reset epsilon
+            self.epsilon = 1.0 if period_time > self.time_limit_to_reset_epsilon else self.epsilon
+
+            # If agent has learned good stuff, change maze
+            if episode_reward > self.succesful_run_trigger: # ADD AT THE START
+                maze_counter += 1
+            else:
+                maze_counter = 0
+
+            if maze_counter == self.times_succesful_to_next_map:
+                print("Changing maze, resseting epsilon...")
                 maze_counter = 0
                 self.maze = mazes[np.random.randint(0, len(mazes))]
+                print("Changed maze")
                 self.start = (0, 0)
+                print("Changed start")
                 self.end = (len(self.maze) - 1, len(self.maze[0]) - 1)
+                print("Changed end")
+                self.epsilon = 1.0
+                print("Changed epsilon")
+                print("Starting training again...")
         
     def take_action(self, state, action):
         x, y = state
@@ -148,8 +173,9 @@ class DQNAgent:
             print (next_state)
             print (self.end)
         """
-        reward = 1 if tuple(next_state) == self.end else -1 if self.maze[x, y] == 0 else 0
-        done = tuple(next_state) == self.end or self.maze[x, y] == 0
+        reward = 1 if tuple(next_state) == self.end else -1 #if self.maze[x, y] == 0 else 0
+        done = tuple(next_state) == self.end #or self.maze[x, y] == 0 # Why would it reset, if it hits a wall? it can not do a perfect run, if it does not hit a wall
+        next_state = state if self.maze[x, y] == 0 else next_state
         
         return next_state, reward, done
     
@@ -176,7 +202,7 @@ class DQNAgent:
 
 # Create and train the DQN agent
 agent = DQNAgent(maze, start, end)
-agent.train(num_episodes=30000, batch_size=128)
+agent.train(num_episodes=10000, batch_size=128)
 
 # Wait user input to test the learned policy
 input("Press enter to test the learned policy...")
@@ -216,6 +242,7 @@ test_agent = DQNAgent(maze, start, end)
 # Set the initial state
 state = np.array(test_agent.start)
 last_position = None
+count = 0
 
 # Navigate the maze using the loaded model
 while tuple(state) != test_agent.end:
@@ -231,7 +258,7 @@ while tuple(state) != test_agent.end:
         count += 1
     else:
         count = 0
-    if count > 3:
+    if count > 10:
         print("Agent is stuck. Stopping.  :(")
         break
     last_position = tuple(state)
