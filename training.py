@@ -5,13 +5,6 @@ import os
 import datetime
 
 # Define the maze matrix
-maze = np.array([
-    [1, 1, 1, 1, 1],
-    [0, 1, 0, 0, 1],
-    [1, 1, 1, 1, 1],
-    [1, 0, 0, 1, 1],
-    [1, 1, 1, 1, 1]
-])
 
 mazes = (
     np.array([
@@ -49,7 +42,17 @@ mazes = (
         [1, 0, 0, 1, 0],
         [1, 1, 0, 1, 1]
     ]),
+    np.array([
+        [1, 1, 1, 1, 1],
+        [0, 1, 0, 0, 1],
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 1, 1],
+        [1, 1, 1, 1, 1]
+    ])
 )
+# select a random maze from the list above for maze
+maze = mazes[np.random.randint(0, len(mazes))]
+
 
 
 # Define the start and end coordinates
@@ -91,7 +94,7 @@ class DQNAgent:
         self.end = end
         self.num_actions = 4  # Up, Down, Left, Right
         self.epsilon = 1.0  # Exploration rate
-        self.epsilon_decay = 0.999  # Exploration rate decay
+        self.epsilon_decay = 0.995  # Exploration rate decay
         self.epsilon_min = 0.01  # Minimum exploration rate
         self.gamma = 0.99  # Discount factor
         self.learning_rate = 0.001
@@ -132,14 +135,15 @@ class DQNAgent:
 
                 if len(replay_buffer) > batch_size:
                     self.update_model(replay_buffer, batch_size)
-                    # Backing up the model
-                    if episode % backup_frequency == 0:
-                        checkpoint_path = checkpoint_manager.save()
-                        # Save metadata along with the checkpoint
-                        metadata = f"Episode: {episode+1}, Time: {datetime.datetime.now()}"
-                        metadata_path = checkpoint_path + '.meta'
-                        with open(metadata_path, 'w') as file:
-                            file.write(metadata)
+                    
+            # Backing up the model
+            if episode % backup_frequency == 0:
+                checkpoint_path = checkpoint_manager.save()
+                # Save metadata along with the checkpoint
+                metadata = f"Episode: {episode+1}, Time: {datetime.datetime.now()}"
+                metadata_path = checkpoint_path + '.meta'
+                with open(metadata_path, 'w') as file:
+                    file.write(metadata)
 
             end_time = time.time()  # End the timer
             period_time = end_time - start_time  # Calculate the time period
@@ -156,7 +160,7 @@ class DQNAgent:
             state = np.array(self.start)
 
             # If agent hasen't learn good stuff, reset epsilon
-            self.epsilon = 1.0 if (period_time > self.time_limit_to_reset_epsilon and self.epsilon < 600) else self.epsilon
+            self.epsilon = 1.0 if (period_time > self.time_limit_to_reset_epsilon and self.epsilon < 0.600) else self.epsilon
 
             # If agent has learned good stuff, change maze
             if episode_reward > self.succesful_run_trigger:  # ADD AT THE START
@@ -183,11 +187,11 @@ class DQNAgent:
         if action == 0:  # Up
             x = max(x - 1, 0)
         elif action == 1:  # Down
-            x = min(x + 1, maze.shape[0] - 1)
+            x = min(x + 1, self.maze.shape[0] - 1)
         elif action == 2:  # Left
             y = max(y - 1, 0)
         elif action == 3:  # Right
-            y = min(y + 1, maze.shape[1] - 1)
+            y = min(y + 1, self.maze.shape[1] - 1)
 
         next_state = np.array([x, y])
         # Print goal when agent reaches the end
@@ -204,6 +208,7 @@ class DQNAgent:
         next_state = state if self.maze[x, y] == 0 else next_state
 
         return next_state, reward, done
+
 
     def update_model(self, replay_buffer, batch_size):
         batch_indices = np.random.choice(
@@ -252,7 +257,7 @@ checkpoint_manager = tf.train.CheckpointManager(
     checkpoint, checkpoint_dir, max_to_keep=20)
 
 # Backup frequency
-backup_frequency = 10
+backup_frequency = 100
 
 # Check if a checkpoint exists
 latest_checkpoint = checkpoint_manager.latest_checkpoint
@@ -304,11 +309,25 @@ if latest_checkpoint is not None:
 else:
     print("No checkpoints found. Starting from scratch.")
 
-agent.train(num_episodes=10000, batch_size=128)
+print("DONT PANIC - THE AGENT IS TRAINING (this may take a while, for me up to 5 minutes to see any output))")
+
+agent.train(num_episodes=1, batch_size=128)
 
 # Wait user input to test the learned policy
 input("Press enter to test the learned policy...")
-print("\n" * 100)
+
+
+#changing the maze to hardcore one
+agent.maze = np.array([
+        [1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 1, 0, 1],
+        [1, 1, 1, 1, 0, 1],
+        [1, 0, 0, 1, 0, 1],
+        [1, 0, 1, 0, 1, 0],
+        [1, 1, 1, 1, 1, 1]
+    ])
+
+
 
 # Test the learned policy
 state = np.array(agent.start)
@@ -346,7 +365,10 @@ state = np.array(test_agent.start)
 last_position = None
 count = 0
 
-# Navigate the maze using the loaded model
+# Set the exploration rate for testing
+epsilon = 0.0  # or a small value if you want to allow some exploration
+
+# Navigate the maze using the loaded model with exploration
 while tuple(state) != test_agent.end:
     q_values = loaded_model.predict(state[np.newaxis])
     action = np.argmax(q_values)
@@ -360,7 +382,7 @@ while tuple(state) != test_agent.end:
         count += 1
     else:
         count = 0
-    if count > 10:
+    if count > 100:
         print("Agent is stuck. Stopping.  :(")
         break
     last_position = tuple(state)
