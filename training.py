@@ -311,7 +311,7 @@ else:
 
 print("DONT PANIC - THE AGENT IS TRAINING (this may take a while, for me up to 5 minutes to see any output))")
 
-agent.train(num_episodes=1, batch_size=128)
+agent.train(num_episodes=10000, batch_size=128)
 
 # Wait user input to test the learned policy
 input("Press enter to test the learned policy...")
