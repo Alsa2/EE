@@ -38,14 +38,14 @@ class Map: # add argument num_ellipses with default value 10
                 #print("No path found")
 
 
-        status, path, visited = Astar(self.map, self.start, self.end)
+        status, path = Astar(self.map, self.start, self.end)
 
-        self.print(path, visited)
-        print("Path length: ", len(visited))
+        self.print(path)
+        print("Path length: ", len(path))
 
         print(self.map)
 
-        return    
+        return
 
     def generate_ellipse(self, map_width, map_height):
         crossable = []
