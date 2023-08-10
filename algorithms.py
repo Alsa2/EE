@@ -1,7 +1,69 @@
 from queue import Queue
 import heapq
 import numpy as np
+import random
+import networkx as nx
 # import tensorflow as tf    Will be implemented later
+
+# Algorithm's functions
+def manhattan_distance(point1, point2):
+    return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1])
+
+def check_path(matrix, node1, node2):
+    x1, y1 = node1
+    x2, y2 = node2
+    # Check all cells between node1 and node2
+    for x in range(min(x1, x2), max(x1, x2)+1):
+        for y in range(min(y1, y2), max(y1, y2)+1):
+            if matrix[x][y] == 0:  # Obstacle found
+                return False
+    return True
+
+def bresenham_line_no_diag(node1, node2):
+    points = []
+    dx = node2[0] - node1[0]
+    dy = node2[1] - node1[1]
+
+    # handle horizontal lines
+    if dx == 0:
+        # step +1 when we're moving upwards, -1 when moving downwards
+        step = 1 if dy > 0 else -1 
+        points.extend([(node1[0], y) for y in range(node1[1], node2[1] + step, step)])
+        return points
+
+    # handle vertical line
+    if dy == 0:
+        # step +1 when we're moving to the right, -1 when we're moving to the left
+        step = 1 if dx > 0 else -1 
+        points.extend([(x, node2[1]) for x in range(node1[0], node2[0] + step, step)])
+        return points
+
+    # handle other directions
+    if abs(dx) >= abs(dy):
+        step_x = 1 if dx > 0 else -1
+        step_y = 1 if dy > 0 else -1
+
+        #Horizontal transition
+        for x in range(node1[0], node2[0] + step_x, step_x): 
+            points.append((x, node1[1]))   
+
+        #Vertical transition
+        for y in range(node1[1]+ step_y, node2[1] + step_y, step_y):
+            points.append((node2[0], y))
+
+    else:
+        step_x = 1 if dx > 0 else -1
+        step_y = 1 if dy > 0 else -1
+
+        #Vertical transition
+        for y in range(node1[1], node2[1] + step_y, step_y):
+            points.append((node1[0], y))  
+
+        #Horizontal transition
+        for x in range(node1[0] + step_x, node2[0] + step_x, step_x):
+            points.append((x, node2[1]))
+
+    return list(set(points))
 
 def BFS_checker(matrix, start, end):
     queue = Queue()
@@ -31,6 +93,58 @@ def BFS_checker(matrix, start, end):
 
     # Path not found
     return False, None
+
+def PRM(matrix, start, end, n_nodes=1000):
+    # Threshold distance for visibility between two points
+    node_threshold = 5
+
+    # Generate random nodes
+    nodes = [start, end] + [(random.randint(0, len(matrix)-1), random.randint(0, len(matrix[0])-1)) for _ in range(n_nodes)]
+
+    #Check if start and end are in a free space
+    if matrix[start[0]][start[1]] == 0 or matrix[end[0]][end[1]] == 0:
+        print ("Start or end is in an obstacle")
+        return False, None
+
+    # Remove duplicate nodes
+    nodes = list(set(nodes))
+
+    # Check if the node is in a free space
+    nodes = [node for node in nodes if matrix[node[0]][node[1]] == 1]
+
+    # Create the graph
+    graph = nx.Graph()
+
+    for (i, node) in enumerate(nodes):
+        graph.add_node(i, position=node)
+
+    # Connect nodes that are within a certain distance
+    for i in range(len(nodes)):
+        for j in range(i+1, len(nodes)):
+            node_i = nodes[i]
+            node_j = nodes[j]
+            if manhattan_distance(node_i, node_j) <= node_threshold and check_path(matrix, node_i, node_j):  # Set a threshold distance for visibility between two points
+                graph.add_edge(i, j, weight=manhattan_distance(node_i, node_j))  # The weight of the edge is the distance
+
+    # Use Dijkstra's algorithm or A* algorithm to find the shortest path
+    start_index = nodes.index(start)
+    end_index = nodes.index(end)
+
+    try:
+        path_indices = nx.dijkstra_path(graph, start_index, end_index, 'weight')
+        path = [nodes[index] for index in path_indices]
+
+        path_indices = nx.dijkstra_path(graph, start_index, end_index, 'weight')
+        path = [nodes[index] for index in path_indices]
+
+        # Incorporate Bresenham's algorithm to get all points in between
+        points_in_path = []
+        for i in range(len(path)-1):
+            points_in_path += bresenham_line_no_diag(path[i], path[i+1])
+
+        return True, points_in_path
+    except nx.NetworkXNoPath:
+        return False, None
 
 def Astar(matrix, start, end):
     heap = [(0, start)]
@@ -67,8 +181,6 @@ def Astar(matrix, start, end):
     # Path not found
     return False, None
 
-def manhattan_distance(point1, point2):
-    return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1])
 
 """
 class DQN:

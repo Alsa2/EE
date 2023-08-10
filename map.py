@@ -1,6 +1,6 @@
 import random
 import math
-from algorithms import BFS_checker, Astar
+from algorithms import BFS_checker, Astar, PRM
 
 
 dark_green = "\033[48;5;22m"
@@ -37,14 +37,7 @@ class Map: # add argument num_ellipses with default value 10
             #else:
                 #print("No path found")
 
-
-        status, path = Astar(self.map, self.start, self.end)
-
-        self.print(path)
-        print("Path length: ", len(path))
-
-        print(self.map)
-
+        self.reset_map()
         return
 
     def generate_ellipse(self, map_width, map_height):
@@ -136,11 +129,10 @@ class Map: # add argument num_ellipses with default value 10
 
     def return_matrix(self):
         return self.map
-
-        
-        
     
-
-
-map = Map(10, 10)
-
+    def reset_map(self): #resets severything that is not 0 and 1 to 1 because algorithms see them as obstacles
+        for i in range(len(self.map)):
+            for j in range(len(self.map[0])):
+                if self.map[i][j] != 0 and self.map[i][j] != 1:
+                    self.map[i][j] = 1
+        

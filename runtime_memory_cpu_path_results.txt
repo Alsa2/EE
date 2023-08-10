@@ -1,0 +1,6 @@
+Maze size: 10, Algorithm: BFS_checker, Avg runtime: 0.0011395454406738282s, Avg memory: 0.00234375MB, Avg CPU usage: 0.0%, Avg path length: 2.0
+Maze size: 10, Algorithm: Astar, Avg runtime: 0.00044565200805664064s, Avg memory: 0.000390625MB, Avg CPU usage: 0.0%, Avg path length: 2.0
+Maze size: 10, Algorithm: PRM, Avg runtime: 0.02161991596221924s, Avg memory: 0.022265625MB, Avg CPU usage: 0.0%, Avg path length: 2.0
+Maze size: 100, Algorithm: BFS_checker, Avg runtime: 0.06563749313354492s, Avg memory: 0.0MB, Avg CPU usage: 0.0%, Avg path length: 2.0
+Maze size: 100, Algorithm: Astar, Avg runtime: 0.0371626615524292s, Avg memory: 0.0MB, Avg CPU usage: 0.0%, Avg path length: 2.0
+Maze size: 100, Algorithm: PRM, Avg runtime: 0.2263580083847046s, Avg memory: 0.0MB, Avg CPU usage: 0.0%, Avg path length: 2.0
