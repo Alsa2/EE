@@ -14,6 +14,7 @@ def run_test(test_map, algorithm, results, index):
 
     results[index] = {
         'algorithm': algorithm.__name__,
+        'size': test_map.width,  # assuming square map so width = height = size
         'time': end_time - start_time,
         'cpu_percent': psutil.cpu_percent(),
         'memory_percent': psutil.virtual_memory().percent,
@@ -21,16 +22,16 @@ def run_test(test_map, algorithm, results, index):
     }
 
 def main():
-    sizes = [10, 100, 1000]
+    sizes = [10, 50, 100]
     algorithms = [BFS_checker, Astar, PRM]
 
     # Warm up
     print("Warming Up Baby")
-    test_map = Map(10000, 10000)
+    #test_map = Map(10000, 10000)
     print("Warming Up D0n€ :)")
 
     # How many tests for average value
-    average = 10
+    average = 100
 
     results = []
 
@@ -54,7 +55,7 @@ def main():
 
     # Save results to CSV
     with open('results.csv', 'w') as f:
-        writer = csv.DictWriter(f, fieldnames=['algorithm', 'time', 'cpu_percent', 'memory_percent', 'path_length'])
+        writer = csv.DictWriter(f, fieldnames=['algorithm', 'size', 'time', 'cpu_percent', 'memory_percent', 'path_length'])
         writer.writeheader()
         writer.writerows(results)
 

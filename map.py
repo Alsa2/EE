@@ -22,6 +22,10 @@ class Map: # add argument num_ellipses with default value 10
         self.start = (0, 0)
         self.end = (map_width - 1, map_height - 1)
 
+        #map width and height are the number of cells in the map
+        self.width = map_width
+        self.height = map_height
+
         self.initial_circle(2)
 
         #add ellipses until possible check is true
