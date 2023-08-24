@@ -4,58 +4,14 @@ import time
 import os
 import datetime
 
-# Define the maze matrix
+# Define the maze matrix with map generator
+from map import Map
 
-mazes = (
-    np.array([
-        [1, 1, 1, 1, 1],
-        [0, 0, 1, 0, 1],
-        [1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1]
-    ]),
-    np.array([
-        [1, 1, 1, 1, 1],
-        [0, 0, 0, 1, 1],
-        [1, 0, 1, 1, 1],
-        [1, 0, 0, 1, 0],
-        [1, 1, 1, 1, 1]
-    ]),
-    np.array([
-        [1, 1, 1, 1, 1],
-        [0, 1, 0, 0, 1],
-        [1, 1, 1, 1, 1],
-        [1, 0, 0, 1, 0],
-        [1, 1, 1, 1, 1]
-    ]),
-    np.array([
-        [1, 0, 1, 1, 1],
-        [1, 0, 1, 0, 1],
-        [1, 1, 1, 0, 1],
-        [1, 0, 0, 0, 1],
-        [1, 1, 0, 1, 1]
-    ]),
-    np.array([
-        [1, 1, 1, 1, 1],
-        [0, 1, 0, 0, 1],
-        [1, 1, 1, 0, 1],
-        [1, 0, 0, 1, 0],
-        [1, 1, 0, 1, 1]
-    ]),
-    np.array([
-        [1, 1, 1, 1, 1],
-        [0, 1, 0, 0, 1],
-        [1, 1, 1, 1, 1],
-        [1, 0, 0, 1, 1],
-        [1, 1, 1, 1, 1]
-    ])
-)
-# select a random maze from the list above for maze
-maze = mazes[np.random.randint(0, len(mazes))]
-
-
-
-# Define the start and end coordinates
+map_size = 100
+test_map = Map(map_size, map_size)
+maze = test_map.map
+#converting to numpy array
+maze = np.array(maze)
 start = (0, 0)
 end = (len(maze) - 1, len(maze[0]) - 1)
 
@@ -87,7 +43,7 @@ class DQN(tf.keras.Model):
 
 
 class DQNAgent:
-    def __init__(self, maze, start, end):
+    def __init__(self, maze, start, end, memory_size):
         # Default settings
         self.maze = maze
         self.start = start
@@ -102,6 +58,10 @@ class DQNAgent:
         self.optimizer = tf.keras.optimizers.Adam(
             learning_rate=self.learning_rate)
 
+        # Testing memory
+        self.memory_size = memory_size
+        self.memory = deque(maxlen=self.memory_size)
+
         # My additional settings
         self.succesful_run_trigger = -40
         self.times_succesful_to_next_map = 40
@@ -111,7 +71,8 @@ class DQNAgent:
         if np.random.rand() <= self.epsilon:
             return np.random.randint(self.num_actions)
         else:
-            q_values = self.model.predict(state[np.newaxis])
+            input_state = self.get_input_state(state)
+            q_values = self.model.predict(input_state[np.newaxis])
             return np.argmax(q_values)
 
     def train(self, num_episodes, batch_size):
@@ -171,15 +132,22 @@ class DQNAgent:
             if maze_counter == self.times_succesful_to_next_map:
                 print("Changing maze, resseting epsilon...")
                 maze_counter = 0
-                self.maze = mazes[np.random.randint(0, len(mazes))]
+                print("Generating new maze...")
+                test_map = Map(map_size, map_size)
+                self.maze = np.array(test_map.map)
                 print("Changed maze")
+                print("Changing start and end...")
                 self.start = (0, 0)
                 print("Changed start")
                 self.end = (len(self.maze) - 1, len(self.maze[0]) - 1)
                 print("Changed end")
+                print("Reseting epsilon...")
                 self.epsilon = 1.0
                 print("Changed epsilon")
-                print("Starting training again...")
+                print("Clearing memory...")
+                self.memory.clear()
+                print("Cleared memory")
+                print("Done, continuing training...")
 
     def take_action(self, state, action):
         x, y = state
@@ -194,27 +162,31 @@ class DQNAgent:
             y = min(y + 1, self.maze.shape[1] - 1)
 
         next_state = np.array([x, y])
-        # Print goal when agent reaches the end
-        """
-        if tuple(next_state) == self.end:
-            print("Goal Reached")
-            print (next_state)
-            print (self.end)
-        """
         reward = 1 if tuple(next_state) == self.end else - \
             1  # if self.maze[x, y] == 0 else 0
         # or self.maze[x, y] == 0 # Why would it reset, if it hits a wall? it can not do a perfect run, if it does not hit a wall
         done = tuple(next_state) == self.end
         next_state = state if self.maze[x, y] == 0 else next_state
 
+        #ma boi got some memory
+        self.memory.append((state, action, reward, next_state, done))
+
         return next_state, reward, done
+    
+    def get_input_state(self, state):
+        # Get the previous actions from the memory
+        prev_actions = np.zeros((self.memory_size, self.num_actions))
+        for i, (_, action, _, _, _) in enumerate(self.memory):
+            prev_actions[i, action] = 1
+
+        # Concatenate the previous actions with the current state
+        input_state = np.concatenate((state, prev_actions), axis=-1)
+        return input_state
 
 
     def update_model(self, replay_buffer, batch_size):
-        batch_indices = np.random.choice(
-            len(replay_buffer), batch_size, replace=False)
-        states, actions, rewards, next_states, dones = zip(
-            *[replay_buffer[i] for i in batch_indices])
+        batch_indices = np.random.choice(len(replay_buffer), batch_size, replace=False)
+        states, actions, rewards, next_states, dones = zip(*[replay_buffer[i] for i in batch_indices])
 
         states = np.array(states)
         actions = np.array(actions)
@@ -223,19 +195,16 @@ class DQNAgent:
         dones = np.array(dones)
 
         with tf.GradientTape() as tape:
-            current_q_values = tf.reduce_sum(self.model(
-                states) * tf.one_hot(actions, self.num_actions), axis=1)
+            current_q_values = tf.reduce_sum(self.model(states) * tf.one_hot(actions, self.num_actions), axis=1)
 
             next_q_values = tf.reduce_max(self.model(next_states), axis=1)
-            target_q_values = rewards + \
-                (1 - dones) * self.gamma * next_q_values
+            target_q_values = rewards + (1 - dones) * self.gamma * next_q_values
 
-            loss = tf.reduce_mean(
-                tf.square(current_q_values - target_q_values))
+            loss = tf.reduce_mean(tf.square(current_q_values - target_q_values))
 
         gradients = tape.gradient(loss, self.model.trainable_variables)
-        self.optimizer.apply_gradients(
-            zip(gradients, self.model.trainable_variables))
+        self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+
 
 
 # Create and train the DQN agent
@@ -254,10 +223,10 @@ checkpoint = tf.train.Checkpoint(agent=agent_wrapper)
 
 # Define a checkpoint manager
 checkpoint_manager = tf.train.CheckpointManager(
-    checkpoint, checkpoint_dir, max_to_keep=20)
+    checkpoint, checkpoint_dir, max_to_keep=50)
 
 # Backup frequency
-backup_frequency = 100
+backup_frequency = 200
 
 # Check if a checkpoint exists
 latest_checkpoint = checkpoint_manager.latest_checkpoint
