@@ -5,7 +5,7 @@ import csv
 from multiprocessing import Process, Manager
 
 from map import Map
-from algorithms import BFS_checker, Astar, PRM
+from algorithms import BFS_checker, Astar, PRM, DQN
 
 def run_test(test_map, algorithm, results, index):
     start_time = time.time()
@@ -22,8 +22,8 @@ def run_test(test_map, algorithm, results, index):
     }
 
 def main():
-    sizes = [10, 50, 100]
-    algorithms = [BFS_checker, Astar, PRM]
+    sizes = [10, 50, 100, 200]
+    algorithms = [BFS_checker, Astar, PRM, DQN]
 
     # Warm up
     print("Warming Up Baby")
@@ -31,7 +31,7 @@ def main():
     print("Warming Up D0n€ :)")
 
     # How many tests for average value
-    average = 100
+    average = 200
 
     results = []
 

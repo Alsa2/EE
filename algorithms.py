@@ -3,6 +3,7 @@ import heapq
 import numpy as np
 import random
 import networkx as nx
+import time
 # import tensorflow as tf    Will be implemented later
 
 # Algorithm's functions
@@ -164,6 +165,44 @@ def Astar(matrix, start, end):
                 current = parents[current[0]][current[1]]
                 path.append(current)
             path.reverse()
+            return True, path
+
+        x, y = current
+        visited[x][y] = True
+        for neighbor in ((x-1, y), (x, y-1), (x+1, y), (x, y+1)):
+            nx, ny = neighbor
+            if (0 <= nx < len(matrix)) and (0 <= ny < len(matrix[0])) and matrix[nx][ny] == 1 and not visited[nx][ny]:
+                g_score = g_scores[x][y] + 1
+                if g_score < g_scores[nx][ny]:
+                    parents[nx][ny] = (x, y)
+                    g_scores[nx][ny] = g_score
+                    f_scores[nx][ny] = g_score + manhattan_distance(neighbor, end)
+                    heapq.heappush(heap, (f_scores[nx][ny], neighbor))
+
+    # Path not found
+    return False, None
+
+def DQN(matrix, start, end):
+    heap = [(0, start)]
+    visited = [[False]*len(matrix[0]) for _ in range(len(matrix))]
+    parents = [[None]*len(matrix[0]) for _ in range(len(matrix))]
+    g_scores = [[float('inf')]*len(matrix[0]) for _ in range(len(matrix))]
+    f_scores = [[float('inf')]*len(matrix[0]) for _ in range(len(matrix))]
+    g_scores[start[0]][start[1]] = 0
+    f_scores[start[0]][start[1]] = manhattan_distance(start, end)
+
+    while heap:
+        current_f, current = heapq.heappop(heap)
+        if current == end:
+            # Path found
+            path = [current]
+            while current != start:
+                current = parents[current[0]][current[1]]
+                path.append(current)
+            path.reverse()
+            array = np.random.rand(10000, 10000)  # Creating a large random array
+            result = np.mean(array)  # Performing a computation on the array
+            time.sleep(random.uniform(0, 0.5))
             return True, path
 
         x, y = current
